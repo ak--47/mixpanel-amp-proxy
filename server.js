@@ -7,6 +7,7 @@ const app = express();
 
 const port = process.env.PORT || 3000;
 const token = process.env.TOKEN || "";
+const debug = process.env.DEBUG || false;
 
 if (!token) {
 	console.error("No token found in .env file. Please add a TOKEN entry.");
@@ -15,7 +16,7 @@ if (!token) {
 
 const Mixpanel = require("mixpanel");
 const mixpanel = Mixpanel.init(token, {
-	debug: true,
+	debug,
 	protocol: "https",
 	verbose: true,
 });
