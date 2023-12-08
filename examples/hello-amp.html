@@ -134,69 +134,7 @@
     <button on="tap:hello.hide">Goodbye AMPHTML World!</button>
     <br /><br /><br /><br />
     <!-- REQ 2 -->
-    <amp-analytics>
-      <script type="application/json">
-        {
-          "requests": {
-            "event": "http://localhost:3000/event?eventName=${eventName}&userId=${userId}&url=${canonicalUrl}&title=${title}&anonymousId=${clientId(uid)}",
-			"user" : "http://localhost:3000/user?userId=${userId}&anonymousId=${clientId(uid)}"
-          },
-          "vars": {
-            "userId": "ABC123"
-          },
-          "transport": {
-            "beacon": false,
-            "xhrpost": true,
-            "image": false,
-            "useBody": true
-          },
-          "extraUrlParams": {
-            "props": { "foo": "bar", "baz": "qux" }
-          },
-          "triggers": {
-            "trackPageView": {
-              "on": "visible",
-              "request": "event",
-              "vars": {
-                "eventName": "page view"
-              }
-            },
-            "trackAnchorClicks": {
-              "on": "click",
-              "selector": "a",
-              "request": "event",
-              "vars": {
-                "eventName": "clicked link"
-              }
-            },
-            "trackButtonClicks": {
-              "on": "click",
-              "selector": "button",
-              "request": "event",
-              "vars": {
-                "eventName": "clicked button"
-              }
-            },
-            "scrollPings": {
-              "on": "scroll",
-              "scrollSpec": {
-                "verticalBoundaries": [90]
-              },
-              "request": "event",
-              "vars": {
-                "eventName": "scrolled"
-              }
-            },
-			"createUserProfile": {
-				"on": "visible",
-				"request": "user",
-				"vars": {
-				  "foo": "DUDE"
-				}
-			  }
-          }
-        }
-      </script>
+    <amp-analytics config="./config.json">
     </amp-analytics>
   </body>
 </html>

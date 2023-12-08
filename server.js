@@ -1,8 +1,7 @@
 require("dotenv").config();
 const express = require("express");
 const bodyParser = require("body-parser");
-const parser = require('ua-parser-js');
-const cors = require("cors");
+const parser = require("ua-parser-js");
 const app = express();
 
 const port = process.env.PORT || 3000;
@@ -21,15 +20,31 @@ const mixpanel = Mixpanel.init(token, {
 	verbose: true,
 });
 
-// Custom middleware to handle text/plain as JSON
-// ? for some reason amp analytics sends 'text/plain' as the content-type
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.json());
+
+// middleware to dynamically set CORS headers for the calling domain
 app.use((req, res, next) => {
-	if (req.headers['content-type'] === 'text/plain') {
-		let data = '';
-		req.on('data', chunk => {
+	const origin = req.headers.origin || "*";
+	res.setHeader("Access-Control-Allow-Origin", origin);
+	res.setHeader("Access-Control-Allow-Credentials", "true");
+	res.header("Access-Control-Allow-Methods", "GET, POST");
+	res.header(
+		"Access-Control-Allow-Headers",
+		"Origin, X-Requested-With, Content-Type, Accept"
+	);
+	next();
+});
+
+// middleware to handle text/plain as JSON
+// ? for some reason <amp-analytics> sends 'text/plain' as the content-type: https://github.com/ampproject/amphtml/issues/22167#issuecomment-493587359
+app.use((req, res, next) => {
+	if (req.headers["content-type"] === "text/plain") {
+		let data = "";
+		req.on("data", (chunk) => {
 			data += chunk;
 		});
-		req.on('end', () => {
+		req.on("end", () => {
 			try {
 				req.body = JSON.parse(data);
 			} catch (e) {
@@ -42,66 +57,65 @@ app.use((req, res, next) => {
 	}
 });
 
-app.use(cors({ credentials: false, allowedHeaders: "*" }));
-app.use(bodyParser.urlencoded({ extended: true }));
-app.use(bodyParser.json());
+
 
 //the proxy will parse data from the <amp-analytics> UI component, and send it to mixpanel
 app.all("*", (req, res) => {
-	const { method, path, body, headers, ip, query } = req;
+	const { method, path, body, headers, ip } = req;
 	const {
 		eventName = "",
 		userId = "",
 		anonymousId = "",
-		...defaultProps
-	} = query;
-	const { props } = body;
+		props,
+		...data
+	} = body;
+
+	const properties = { ...data, ...props };
 
 	//todo parse ua like sdk
-	const ua = parser(headers['user-agent']);
+	const ua = parser(headers["user-agent"]);
 
-	if (ip) defaultProps.ip = ip;
+	if (ip) properties.ip = ip;
+
+	// EVENT TRACKING
 	if (path === "/" || path === "/event") {
-		if (userId) defaultProps.$user_id = userId;
-		if (anonymousId) defaultProps.$device_id = anonymousId;
+		if (userId) properties.$user_id = userId;
+		if (anonymousId) properties.$device_id = anonymousId;
 
-		mixpanel.track(eventName, { ...props, ...defaultProps }, (err) => {
+		mixpanel.track(eventName, properties, (err) => {
 			if (err) {
 				console.error("Error tracking event:", err);
 				res.status(500).send("error");
 			}
 			res.status(200).send("ok");
 		});
-	}
-
-	else if (path === '/user') {
+	} 
+	
+	// USER PROFILES
+	else if (path === "/user") {
 		if (!userId) {
 			res.status(400).send("userId is required for profile updates");
 		}
 
-		mixpanel.people.set(userId, { ...props, ...defaultProps }, (err) => {
+		mixpanel.people.set(userId, properties, (err) => {
 			if (err) {
 				console.error("Error setting user:", err);
 				res.status(500).send("error");
 			}
 			res.status(200).send("ok");
 		});
-	}
-
-	else {
+	} else {
 		res.status(404).send("not found");
 	}
-
 });
 
 app.listen(port, () => {
 	console.log(`PROXY LISTENING ON ${port}`);
 });
 
-
 /** 
 
-todo: copy SDK
+* todo: copy SDK defaults for each type
 
 event props defaults
 {
