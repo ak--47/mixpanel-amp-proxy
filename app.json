@@ -7,20 +7,5 @@
 		"port": 80,
 		"concurrency": 80
 	},
-	"env": {
-		"PORT": {
-			"description": "specify the port to run on",
-			"value": "3000",
-			"required": false
-		},
-		"TOKEN": {
-			"description": "your mixpanel project token",
-			"required": true
-		},
-		"DEBUG": {
-			"description": "log debug messages",
-			"value": "false",
-			"required": false
-		}
-	}
+	"env": {}
 }

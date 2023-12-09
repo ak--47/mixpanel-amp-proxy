@@ -1,25 +1,23 @@
+/**
+ * A simple proxy server to handle <amp-analytics> requests and send them to mixpanel
+ * by ak@mixpanel.com
+ * 
+ * DOCS
+ * ? https://amp.dev/documentation/components/websites/amp-analytics
+ * ? https://amp.dev/documentation/guides-and-tutorials/optimize-and-measure/configure-analytics/analytics_basics
+ * ? https://github.com/ampproject/amphtml/blob/main/docs/spec/amp-var-substitutions.md
+ * 
+ */
+
+
 require("dotenv").config();
 const express = require("express");
 const bodyParser = require("body-parser");
 const parser = require("ua-parser-js");
 const app = express();
-
 const port = process.env.PORT || 3000;
-const token = process.env.TOKEN || "";
 const debug = process.env.DEBUG || false;
-
-if (!token) {
-	console.error("No token found in .env file. Please add a TOKEN entry.");
-	process.exit(1);
-}
-
 const Mixpanel = require("mixpanel");
-const mixpanel = Mixpanel.init(token, {
-	debug,
-	protocol: "https",
-	verbose: true,
-});
-
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
@@ -37,7 +35,7 @@ app.use((req, res, next) => {
 });
 
 // middleware to handle text/plain as JSON
-// ? for some reason <amp-analytics> sends 'text/plain' as the content-type: https://github.com/ampproject/amphtml/issues/22167#issuecomment-493587359
+// ? <amp-analytics> sends 'text/plain' as the content-type: https://github.com/ampproject/amphtml/issues/22167#issuecomment-493587359
 app.use((req, res, next) => {
 	if (req.headers["content-type"] === "text/plain") {
 		let data = "";
@@ -61,95 +59,94 @@ app.use((req, res, next) => {
 
 //the proxy will parse data from the <amp-analytics> UI component, and send it to mixpanel
 app.all("*", (req, res) => {
-	const { method, path, body, headers, ip } = req;
+	const { path, body, headers, ip } = req;
 	const {
 		eventName = "",
 		userId = "",
 		anonymousId = "",
+		token = "",
 		props,
 		...data
 	} = body;
 
-	const properties = { ...data, ...props };
+	if (!token) {
+		res.status(400).send("token is required");
+		return;
+	}
+
+	const mixpanel = Mixpanel.init(token, {
+		debug,
+		protocol: "https",
+		verbose: true,
+	});
 
 	//todo parse ua like sdk
 	const ua = parser(headers["user-agent"]);
+	const defaultProps = {
+		$os : ua.os.name,
+		$os_version: ua.os.version,
+		$browser: ua.browser.name,
+		$browser_version: ua.browser.version,
+		$device: ua.device.model,
+		$referrer: headers.referer
+	}
+
+	const properties = {...defaultProps, ...data, ...props };
 
 	if (ip) properties.ip = ip;
 
 	// EVENT TRACKING
 	if (path === "/" || path === "/event") {
+
+		if (!eventName) {
+			res.status(400).send("eventName is required");
+			return;
+		}
+
 		if (userId) properties.$user_id = userId;
 		if (anonymousId) properties.$device_id = anonymousId;
+
+		// //todo: pageview defaults
+		// $current_url: '',
+		// current_page_title: '',
+		// current_domain: '',
+		// current_url_path: '',
+		// current_url_protocol: '',
+		// current_url_search: '',
 
 		mixpanel.track(eventName, properties, (err) => {
 			if (err) {
 				console.error("Error tracking event:", err);
 				res.status(500).send("error");
+				return;
 			}
 			res.status(200).send("ok");
+			return;
 		});
-	} 
-	
+	}
+
 	// USER PROFILES
 	else if (path === "/user") {
 		if (!userId) {
 			res.status(400).send("userId is required for profile updates");
+			return;
 		}
 
 		mixpanel.people.set(userId, properties, (err) => {
 			if (err) {
 				console.error("Error setting user:", err);
 				res.status(500).send("error");
+				return;
 			}
 			res.status(200).send("ok");
+			return;
 		});
 	} else {
 		res.status(404).send("not found");
+		return;
 	}
 });
 
 app.listen(port, () => {
 	console.log(`PROXY LISTENING ON ${port}`);
 });
-
-/** 
-
-* todo: copy SDK defaults for each type
-
-event props defaults
-{
-		'$os': _.info.os(),
-		'$browser': _.info.browser(userAgent, navigator.vendor, windowOpera),
-		'$referrer': document.referrer,
-		'$referring_domain': _.info.referringDomain(document.referrer),
-		'$device': _.info.device(userAgent)	
-		'$current_url': win.location.href,
-		'$browser_version': _.info.browserVersion(userAgent, navigator.vendor, windowOpera),
-		'$screen_height': screen.height,
-		'$screen_width': screen.width,
-		'mp_lib': 'web',
-		'$lib_version': Config.LIB_VERSION,
-		'$insert_id': cheap_guid(),
-		'time': _.timestamp() 
-
-}
-
-user prop defaults
-'$os': _.info.os(),
-'$browser': _.info.browser(userAgent, navigator.vendor, windowOpera)
-'$browser_version': _.info.browserVersion(userAgent, navigator.vendor, windowOpera)
-
-
-pageView props defaults
-{
-		'current_page_title': document.title,
-		'current_domain': win.location.hostname,
-		'current_url_path': win.location.pathname,
-		'current_url_protocol': win.location.protocol,
-		'current_url_search': win.location.search
-	
-}
-
-
- */

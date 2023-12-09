@@ -3,18 +3,19 @@
 A basic Mixpanel proxy for `<amp-analytics>` components on Google Amp Pages
 
 ```json    
-  {
+ {
 	"requests": {
-		"event": "http://proxy/event",
-		"user": "http://proxy/user"
+		"event": "http://localhost:3000/event",
+		"user": "http://localhost:3000/user"
 	},
 	"vars": {
-		"userId": "ABC123",
-		"anonymousId": "${clientId(uid)}"
+		"userId": "",
+		"anonymousId": "${clientId(uid)}",
+		"token": "mixpanel-project-token"
 	},
 	"transport": {
-		"beacon": false,
 		"xhrpost": true,
+		"beacon": false,		
 		"image": false,
 		"useBody": true
 	},
@@ -24,6 +25,7 @@ A basic Mixpanel proxy for `<amp-analytics>` components on Google Amp Pages
 		"anonymousId": "${anonymousId}",
 		"url": "${canonicalUrl}",
 		"title": "${title}",
+		"token": "${token}",
 		"props": {
 			"foo": "bar",
 			"baz": "qux"
@@ -45,36 +47,15 @@ A basic Mixpanel proxy for `<amp-analytics>` components on Google Amp Pages
 				"eventName": "clicked link"
 			}
 		},
-		"trackButtonClicks": {
-			"on": "click",
-			"selector": "button",
-			"request": "event",
-			"vars": {
-				"eventName": "clicked button"
-			}
-		},
-		"scrollPings": {
-			"on": "scroll",
-			"scrollSpec": {
-				"verticalBoundaries": [
-					90
-				]
-			},
-			"request": "event",
-			"vars": {
-				"eventName": "scrolled 90%"
-			}
-		},
 		"createUserProfile": {
 			"on": "visible",
 			"request": "user",
 			"vars": {
-				"hello": "world"
+				"foo": "DUDE"
 			}
 		}
 	}
 }
-
 ```
 
 [![Google Cloud Btn]][Google Cloud Deploy]

@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "serve:proxy": "PORT=3000 nodemon server.js",
+    "serve:proxy": "PORT=3000 DEBUG=true nodemon server.js",
     "serve:example": "npx serve ./examples -p 8080"
   },
   "keywords": [],

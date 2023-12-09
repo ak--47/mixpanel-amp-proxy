@@ -5,7 +5,8 @@
 	},
 	"vars": {
 		"userId": "ABC123",
-		"anonymousId": "${clientId(uid)}"
+		"anonymousId": "${clientId(uid)}",
+		"token": "3d62110de84248806dd3463a8c6ff47b"
 	},
 	"transport": {
 		"beacon": false,
@@ -19,6 +20,7 @@
 		"anonymousId": "${anonymousId}",
 		"url": "${canonicalUrl}",
 		"title": "${title}",
+		"token": "${token}",
 		"props": {
 			"foo": "bar",
 			"baz": "qux"
