@@ -53,7 +53,7 @@ app.use((req, res, next) => {
 app.all("*", (req, res) => {
 	const { path, body, headers, ip } = req;
 
-	const { eventName = "", userId = "", anonymousId = "", token = "", time = "", userAgent = "", superProps = {}, defaultProps = {}, ...props } = body;
+	const { eventName = "", userId = "", anonymousId = "", token = "", time = "", user_agent = "", superProps = {}, defaultProps = {}, ...props } = body;
 
 	if (!token) {
 		res.status(400).send("token is required");
@@ -68,7 +68,7 @@ app.all("*", (req, res) => {
 	});
 
 	// PARSE USER AGENT
-	const ua = parser(userAgent) || parser(headers["user-agent"]);
+	const ua = parser(user_agent ? user_agent : headers["user-agent"]);
 	const parsedUserAgent = {
 		$os: ua.os.name,
 		$os_version: ua.os.version,
@@ -156,9 +156,5 @@ app.all("*", (req, res) => {
 		return;
 	}
 });
-
-
-
-
 
 module.exports = app;

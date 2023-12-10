@@ -2,6 +2,12 @@
 
 A basic Mixpanel proxy for use with [`<amp-analytics>` components on Google Amp Pages](https://amp.dev/documentation/components/websites/amp-analytics).
 
+## Demo
+
+ <a href="https://youtu.be/9Cv4EmdUyd4"><img src="https://aktunes.neocities.org/ampProxy.png" alt="mixpanel amp proxy demo"/></a>
+
+
+
 ## Setup the Proxy
 
 The proxy server sits between your AMP pages and Mixpanel's ingestion API:
@@ -107,9 +113,9 @@ aws lambda create-function --function-name mixpanel-amp-proxy \
 		"user": "http://{{YOUR-PROXY}}/user"
 	},
 	"vars": {
-		"userId": "", //optional: for authenticated users ONLY
-		"anonymousId": "CLIENT_ID(mixpanel_amp_id)", // required
-		"token": "YOUR_MIXPANEL_TOKEN" // required
+		"userId": "", 
+		"anonymousId": "CLIENT_ID(mixpanel_amp_id)", 
+		"token": "YOUR_MIXPANEL_TOKEN"
 	},
 	"transport": {
 		"beacon": false,
@@ -140,11 +146,9 @@ aws lambda create-function --function-name mixpanel-amp-proxy \
 		"defaultProps": {
 			"$screen_height": "${viewportHeight}",
 			"$screen_width": "${viewportWidth}",
-			"$referrer": "${documentReferrer}",
+			"$referrer": "${documentReferrer}"
 		},
-		"superProps": {
-			"hello": "world" //optional: any properties for every event
-		}
+		"superProps": {}
 	},
 	"triggers": {
 		"trackPageView": {
@@ -153,8 +157,7 @@ aws lambda create-function --function-name mixpanel-amp-proxy \
 			"vars": {
 				"eventName": "page view"
 			},
-			"extraUrlParams": {
-				// optional: any properties for every page view
+			"extraUrlParams": {				
 				"$current_url": "${sourceUrl}",
 				"current_page_title": "${title}",
 				"current_domain": "${canonicalHost}",
