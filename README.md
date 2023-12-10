@@ -152,7 +152,6 @@ we could setup tracking as:
 
 ```json
 {
-  //...
   "trackAnchorClicks": {
     "on": "click",
     "selector": "a",
