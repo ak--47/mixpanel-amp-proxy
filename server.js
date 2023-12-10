@@ -9,12 +9,10 @@
  *
  */
 
-require("dotenv").config();
 const express = require("express");
 const bodyParser = require("body-parser");
 const parser = require("ua-parser-js");
 const app = express();
-const port = process.env.PORT || 3000;
 const debug = process.env.DEBUG || false;
 const Mixpanel = require("mixpanel");
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -159,6 +157,8 @@ app.all("*", (req, res) => {
 	}
 });
 
-app.listen(port, () => {
-	console.log(`PROXY LISTENING ON ${port}`);
-});
+
+
+
+
+module.exports = app;

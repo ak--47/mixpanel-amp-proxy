@@ -1,10 +1,24 @@
 # AMP Pages Mixpanel Proxy
 
-A basic Mixpanel proxy for use with `<amp-analytics>` components on Google Amp Pages.
+A basic Mixpanel proxy for use with [`<amp-analytics>` components on Google Amp Pages](https://amp.dev/documentation/components/websites/amp-analytics).
 
 ## Setup the Proxy
 
-The proxy server sits between your AMP pages and Mixpanel. You can run it on your own infrastructure or use a serverless provider; choose a deployment strategy below and once you have a URL for the proxy, you can [configure your front-end](#frontend).
+The proxy server sits between your AMP pages and Mixpanel's ingestion API:
+
+```mermaid
+---
+title: "Google AMP Mixpanel Proxy"
+---
+flowchart
+	438532("AMP\nPages") -.-> 588507("Your Mixpanel Proxy")
+	588507 -.-> 298973("Mixpanel's Servers")
+
+```
+
+You can run the proxy on your own infrastructure or use a serverless provider; choose a deployment strategy below. 
+
+Once you have a URL for the proxy, you can **[configure your front-end](#frontend)** to send requests to your proxy.
 
 ### One Click Deploys!
 
@@ -28,7 +42,8 @@ The proxy server sits between your AMP pages and Mixpanel. You can run it on you
 
 
 ### Manual Deploys
-- GCP
+
+##### GCP Manual Deploy:
 
 ```bash
 # clone repo
@@ -45,15 +60,16 @@ gcloud run deploy mixpanel-amp-proxy --image gcr.io/YOUR_GCP_PROJECT_ID/mixpanel
 
 then copy the url of the deployed service; you will use this as the value of `requests` key in your `<amp-analytics>` component (replace with `{{YOUR-PROXY}}`)
 
-- on AWS:
+##### AWS Manual Deploy:
 
 ```bash
+# clone repo
 aws configure
 git clone https://github.com/ak--47/mixpanel-amp-proxy.git
 cd mixpanel-amp-proxy
 
 
-# Create a Repository in Amazon ECR + Login
+# create ECR repo and login
 aws ecr create-repository --repository-name mixpanel-amp-proxy
 aws ecr get-login-password --region your-region | docker login --username AWS --password-stdin your-account-id.dkr.ecr.your-region.amazonaws.com
 
@@ -68,6 +84,7 @@ aws lambda create-function --function-name mixpanel-amp-proxy \
 --code ImageUri=your-account-id.dkr.ecr.your-region.amazonaws.com/mixpanel-amp-proxy:latest \
 --role arn:aws:iam::your-account-id:role/your-lambda-role
 ```
+^ then configure your lambda to a public API Gateway endpoint, and copy the url of the deployed service; you will use this as the value of `requests` key in your `<amp-analytics>` component (replace with `{{YOUR-PROXY}}`)
 
 <div id="frontend"></div>
 
@@ -79,17 +96,17 @@ aws lambda create-function --function-name mixpanel-amp-proxy \
 <script async custom-element="amp-analytics" src="https://cdn.ampproject.org/v0/amp-analytics-0.1.js"></script>
 ```
 
-- within `<body>` tag, include `<amp-analytics>` component [for sending in-house](https://amp.dev/documentation/components/amp-analytics#send-data-in-house); this is this is the "minimum" configuration required to replicate the SDK:
+- within `<body>` tag, include `<amp-analytics>` component [for sending in-house](https://amp.dev/documentation/components/amp-analytics#send-data-in-house); this is this is the MINIMUM configuration required:
 
 ```html
 <amp-analytics>
   <script type="application/json">
-    {
-      "requests": {
-        "event": "https://{{YOUR-PROXY}}/event",
-        "user": "http://{{YOUR-PROXY}}/user"
-      },
-     "vars": {
+ {
+	"requests": {
+		"event": "https://{{YOUR-PROXY}}/event",
+		"user": "http://{{YOUR-PROXY}}/user"
+	},
+	"vars": {
 		"userId": "", //optional: for authenticated users ONLY
 		"anonymousId": "CLIENT_ID(mixpanel_amp_id)", // required
 		"token": "YOUR_MIXPANEL_TOKEN" // required
@@ -129,25 +146,30 @@ aws lambda create-function --function-name mixpanel-amp-proxy \
 			"hello": "world" //optional: any properties for every event
 		}
 	},
-      "triggers": {
-        "trackPageView": {
-          "on": "visible",
-          "request": "event",
-          "vars": {
-            "eventName": "page view"
-          },
-          "extraUrlParams": {
-			// optional: any properties for every page view
-            "$current_url": "${sourceUrl}",
-            "current_page_title": "${title}",
-            "current_domain": "${canonicalHost}",
-            "current_url_path": "${sourcePath}"
-          }
-        }
-      }
-    }
+	"triggers": {
+		"trackPageView": {
+			"on": "visible",
+			"request": "event",
+			"vars": {
+				"eventName": "page view"
+			},
+			"extraUrlParams": {
+				// optional: any properties for every page view
+				"$current_url": "${sourceUrl}",
+				"current_page_title": "${title}",
+				"current_domain": "${canonicalHost}",
+				"current_url_path": "${sourcePath}"
+			}
+		}
+	}
+}
   </script>
 </amp-analytics>
+```
+^ this configuration is the equivalent of:
+
+```js
+mixpanel.init(yourToken, {track_pageview: true});
 ```
 
 you can create other types of events by adding them to the `triggers` object; `triggers` have many different [listeners](https://amp.dev/documentation/components/amp-analytics#available-triggers). you can use standard [AMP variables](https://amp.dev/documentation/components/amp-analytics#amp-variables) or [custom variables](https://amp.dev/documentation/components/amp-analytics#custom-variables) to send data to the proxy.
@@ -156,9 +178,9 @@ given:
 
 ```html
 <!-- LINK -->
-<a href="#" data-vars-link-url="aktunes.com">yoo</a>
+<a href="#" data-vars-link-url="aktunes.com">Linky</a>
 <!-- BUTTON -->
-<button href="#" data-vars-button-name="foo">Don't click</button>
+<button id="myButton" href="#" data-vars-button-name="foo">Buttonface</button>
 ```
 
 we could setup tracking as:
@@ -176,12 +198,12 @@ we could setup tracking as:
       "link_url": "${linkUrl}"
     }
   },
-  "trackButtonClicks": {
+  "trackSpecificButton": {
     "on": "click",
-    "selector": "button",
+    "selector": "button#myButton",
     "request": "event",
     "vars": {
-      "eventName": "clicked button"
+      "eventName": "clicked the button"
     },
     "extraUrlParams": {
       "button_name": "${buttonName}"

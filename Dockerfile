@@ -9,4 +9,4 @@ COPY . .
 
 
 # Run the web service on container startup.
-CMD [ "node", "server.js" ]
+CMD [ "node", "main.js" ]
