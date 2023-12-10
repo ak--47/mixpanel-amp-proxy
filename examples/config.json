@@ -6,7 +6,7 @@
 	},
 	"vars": {
 		"userId": "ak",
-		"anonymousId": "${clientId(uid)}",
+		"anonymousId": "CLIENT_ID(mixpanel_amp_id)",
 		"token": "3d62110de84248806dd3463a8c6ff47b"
 	},
 	"transport": {
@@ -15,19 +15,33 @@
 		"image": false,
 		"useBody": true
 	},
+	"linkers": {
+		"mixpanel": {
+			"ids": {
+				"mixpanel_amp_id": "${anonymousId}"
+			},
+			"proxyOnly": false
+		}
+	},
+	"cookies": {
+		"mixpanel_amp_id": {
+			"value": "LINKER_PARAM(mixpanel, mixpanel_amp_id)"
+		}
+	},
 	"extraUrlParams": {
 		"eventName": "${eventName}",
 		"userId": "${userId}",
 		"anonymousId": "${anonymousId}",
 		"token": "${token}",
+		"time": "${timestamp}",
+		"user_agent": "${userAgent}",
 		"defaultProps": {
 			"$screen_height": "${viewportHeight}",
 			"$screen_width": "${viewportWidth}",
 			"$referrer": "${documentReferrer}",
 			"pageLoadTime": "${pageLoadTime}",
 			"pageDownloadTime": "${pageDownloadTime}",
-			"firstContentfulPaint": "${firstContentfulPaint}",
-
+			"firstContentfulPaint": "${firstContentfulPaint}"
 		},
 		"superProps": {
 			"hello": "world"

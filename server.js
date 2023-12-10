@@ -26,10 +26,7 @@ app.use((req, res, next) => {
 	res.setHeader("Access-Control-Allow-Origin", origin);
 	res.setHeader("Access-Control-Allow-Credentials", "true");
 	res.header("Access-Control-Allow-Methods", "GET, POST");
-	res.header(
-		"Access-Control-Allow-Headers",
-		"Origin, X-Requested-With, Content-Type, Accept"
-	);
+	res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
 	next();
 });
 
@@ -57,16 +54,8 @@ app.use((req, res, next) => {
 //the proxy will parse data from the <amp-analytics> UI component, and send it to mixpanel
 app.all("*", (req, res) => {
 	const { path, body, headers, ip } = req;
-	
-	const {
-		eventName = "",
-		userId = "",
-		anonymousId = "",
-		token = "",
-		superProps = {},
-		defaultProps = {},
-		...props
-	} = body;
+
+	const { eventName = "", userId = "", anonymousId = "", token = "", time = "", userAgent = "", superProps = {}, defaultProps = {}, ...props } = body;
 
 	if (!token) {
 		res.status(400).send("token is required");
@@ -81,17 +70,17 @@ app.all("*", (req, res) => {
 	});
 
 	// PARSE USER AGENT
-	const ua = parser(headers["user-agent"]);
-	const userAgent = {
+	const ua = parser(userAgent) || parser(headers["user-agent"]);
+	const parsedUserAgent = {
 		$os: ua.os.name,
 		$os_version: ua.os.version,
 		$browser: ua.browser.name,
 		$browser_version: ua.browser.version,
-		$device: ua.device.model		
+		$device: ua.device.model,
 	};
 
 	// MERGE PROPERTIES
-	const properties = { ...userAgent, ...superProps, ...props };
+	const properties = { ...parsedUserAgent, ...superProps, ...props };
 	if (ip) properties.ip = ip;
 
 	// TRACK EVENT
@@ -103,6 +92,7 @@ app.all("*", (req, res) => {
 
 		if (userId) properties.$user_id = userId;
 		if (anonymousId) properties.$device_id = anonymousId;
+		if (time && !isNaN(Number(time))) properties.time = Number(time);
 
 		mixpanel.track(eventName, properties, (err) => {
 			if (err) {
@@ -128,13 +118,13 @@ app.all("*", (req, res) => {
 			res.status(400).send("anonymousId is required for /identify");
 			return;
 		}
-		
+
 		// ? https://developer.mixpanel.com/reference/create-identity
 		const identityMerge = {
 			$identified_id: userId,
 			$anon_id: anonymousId,
 		};
-		
+
 		mixpanel.track("$identify", identityMerge, (err) => {
 			if (err) {
 				console.error("Error tracking event:", err);
@@ -144,7 +134,7 @@ app.all("*", (req, res) => {
 
 			res.status(200).send("ok");
 			return;
-		});	
+		});
 	}
 
 	// SET USER PROPERTIES... requires userId

@@ -89,34 +89,46 @@ aws lambda create-function --function-name mixpanel-amp-proxy \
         "event": "https://{{YOUR-PROXY}}/event",
         "user": "http://{{YOUR-PROXY}}/user"
       },
-      "vars": {
-        "userId": "", // optional, for logged in users
-        "anonymousId": "${clientId(uid)}", // AMP page's device_id
-        "token": "YOUR_MIXPANEL_TOKEN" // required!
-      },
-      "transport": {
-        "beacon": false,
-        "xhrpost": true,
-        "image": false,
-        "useBody": true
-      },
-      "extraUrlParams": {
-        "eventName": "${eventName}",
-        "userId": "${userId}",
-        "anonymousId": "${anonymousId}",
-        "token": "${token}",
-        "defaultProps": {
-          "$screen_height": "${viewportHeight}",
-          "$screen_width": "${viewportWidth}",
-          "$referrer": "${documentReferrer}",
-          "pageLoadTime": "${pageLoadTime}",
-          "pageDownloadTime": "${pageDownloadTime}",
-          "firstContentfulPaint": "${firstContentfulPaint}"
-        },
-        "superProps": {
-          "hello": "world" // optional, for static properties
-        }
-      },
+     "vars": {
+		"userId": "", //optional: for authenticated users ONLY
+		"anonymousId": "CLIENT_ID(mixpanel_amp_id)", // required
+		"token": "YOUR_MIXPANEL_TOKEN" // required
+	},
+	"transport": {
+		"beacon": false,
+		"xhrpost": true,
+		"image": false,
+		"useBody": true
+	},
+	"linkers": {
+		"mixpanel": {
+			"ids": {
+				"mixpanel_amp_id": "${anonymousId}"
+			},
+			"proxyOnly": false
+		}
+	},
+	"cookies": {
+		"mixpanel_amp_id": {
+			"value": "LINKER_PARAM(mixpanel, mixpanel_amp_id)"
+		}
+	},
+	"extraUrlParams": {
+		"eventName": "${eventName}",
+		"userId": "${userId}",
+		"anonymousId": "${anonymousId}",
+		"token": "${token}",
+		"time": "${timestamp}",
+		"user_agent": "${userAgent}",
+		"defaultProps": {
+			"$screen_height": "${viewportHeight}",
+			"$screen_width": "${viewportWidth}",
+			"$referrer": "${documentReferrer}",
+		},
+		"superProps": {
+			"hello": "world" //optional: any properties for every event
+		}
+	},
       "triggers": {
         "trackPageView": {
           "on": "visible",
@@ -125,6 +137,7 @@ aws lambda create-function --function-name mixpanel-amp-proxy \
             "eventName": "page view"
           },
           "extraUrlParams": {
+			// optional: any properties for every page view
             "$current_url": "${sourceUrl}",
             "current_page_title": "${title}",
             "current_domain": "${canonicalHost}",
@@ -188,6 +201,7 @@ you can also send user properties too; you want to make sure you set a `userId` 
     "on": "visible",
     "request": "user",
     "extraUrlParams": {
+	// user properties to set
       "$name": "AK",
       "$email": "ak@mixpanel.com",
 	  "userId": "1234"
