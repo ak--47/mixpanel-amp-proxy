@@ -96,7 +96,7 @@ aws lambda create-function --function-name mixpanel-amp-proxy \
 <script async custom-element="amp-analytics" src="https://cdn.ampproject.org/v0/amp-analytics-0.1.js"></script>
 ```
 
-- within `<body>` tag, include `<amp-analytics>` component [for sending in-house](https://amp.dev/documentation/components/amp-analytics#send-data-in-house); this is this is the MINIMUM configuration required:
+- within `<body>` tag, include `<amp-analytics>` component [for sending in-house](https://amp.dev/documentation/components/amp-analytics#send-data-in-house); this is the MINIMUM configuration required:
 
 ```html
 <amp-analytics>
