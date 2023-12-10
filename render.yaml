@@ -1,0 +1,9 @@
+services:
+  - type: web
+    name: mixpanel-amp-proxy
+    env: docker
+    plan: starter
+    dockerfilePath: './Dockerfile'
+    envVars:
+      - key: PORT
+        value: '8080'

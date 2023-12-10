@@ -1,14 +1,13 @@
 /**
  * A simple proxy server to handle <amp-analytics> requests and send them to mixpanel
  * by ak@mixpanel.com
- * 
+ *
  * DOCS
  * ? https://amp.dev/documentation/components/websites/amp-analytics
  * ? https://amp.dev/documentation/guides-and-tutorials/optimize-and-measure/configure-analytics/analytics_basics
  * ? https://github.com/ampproject/amphtml/blob/main/docs/spec/amp-var-substitutions.md
- * 
+ *
  */
-
 
 require("dotenv").config();
 const express = require("express");
@@ -55,18 +54,18 @@ app.use((req, res, next) => {
 	}
 });
 
-
-
 //the proxy will parse data from the <amp-analytics> UI component, and send it to mixpanel
 app.all("*", (req, res) => {
 	const { path, body, headers, ip } = req;
+	
 	const {
 		eventName = "",
 		userId = "",
 		anonymousId = "",
 		token = "",
-		props,
-		...data
+		superProps = {},
+		defaultProps = {},
+		...props
 	} = body;
 
 	if (!token) {
@@ -74,30 +73,29 @@ app.all("*", (req, res) => {
 		return;
 	}
 
+	// todo: maybe cache this?
 	const mixpanel = Mixpanel.init(token, {
 		debug,
 		protocol: "https",
-		verbose: true,
+		verbose: false,
 	});
 
-	//todo parse ua like sdk
+	// PARSE USER AGENT
 	const ua = parser(headers["user-agent"]);
-	const defaultProps = {
-		$os : ua.os.name,
+	const userAgent = {
+		$os: ua.os.name,
 		$os_version: ua.os.version,
 		$browser: ua.browser.name,
 		$browser_version: ua.browser.version,
-		$device: ua.device.model,
-		$referrer: headers.referer
-	}
+		$device: ua.device.model		
+	};
 
-	const properties = {...defaultProps, ...data, ...props };
-
+	// MERGE PROPERTIES
+	const properties = { ...userAgent, ...superProps, ...props };
 	if (ip) properties.ip = ip;
 
-	// EVENT TRACKING
-	if (path === "/" || path === "/event") {
-
+	// TRACK EVENT
+	if (path === "/" || path.startsWith("/event")) {
 		if (!eventName) {
 			res.status(400).send("eventName is required");
 			return;
@@ -106,29 +104,53 @@ app.all("*", (req, res) => {
 		if (userId) properties.$user_id = userId;
 		if (anonymousId) properties.$device_id = anonymousId;
 
-		// //todo: pageview defaults
-		// $current_url: '',
-		// current_page_title: '',
-		// current_domain: '',
-		// current_url_path: '',
-		// current_url_protocol: '',
-		// current_url_search: '',
-
 		mixpanel.track(eventName, properties, (err) => {
 			if (err) {
 				console.error("Error tracking event:", err);
 				res.status(500).send("error");
 				return;
 			}
+			// ^ why is there no response??
+
 			res.status(200).send("ok");
 			return;
 		});
 	}
 
-	// USER PROFILES
-	else if (path === "/user") {
+	// IDENTIFY USER ... only matters for original id merge
+	else if (path === "/identify") {
 		if (!userId) {
-			res.status(400).send("userId is required for profile updates");
+			res.status(400).send("userId is required for /identify");
+			return;
+		}
+
+		if (!anonymousId) {
+			res.status(400).send("anonymousId is required for /identify");
+			return;
+		}
+		
+		// ? https://developer.mixpanel.com/reference/create-identity
+		const identityMerge = {
+			$identified_id: userId,
+			$anon_id: anonymousId,
+		};
+		
+		mixpanel.track("$identify", identityMerge, (err) => {
+			if (err) {
+				console.error("Error tracking event:", err);
+				res.status(500).send("error");
+				return;
+			}
+
+			res.status(200).send("ok");
+			return;
+		});	
+	}
+
+	// SET USER PROPERTIES... requires userId
+	else if (path.startsWith("/user")) {
+		if (!userId) {
+			res.status(400).send("userId is required for /user");
 			return;
 		}
 

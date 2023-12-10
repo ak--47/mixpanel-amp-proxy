@@ -1,10 +1,11 @@
 {
 	"requests": {
 		"event": "http://localhost:3000/event",
-		"user": "http://localhost:3000/user"
+		"user": "http://localhost:3000/user",
+		"identify": "http://localhost:3000/identify"
 	},
 	"vars": {
-		"userId": "ABC123",
+		"userId": "ak",
 		"anonymousId": "${clientId(uid)}",
 		"token": "3d62110de84248806dd3463a8c6ff47b"
 	},
@@ -18,12 +19,18 @@
 		"eventName": "${eventName}",
 		"userId": "${userId}",
 		"anonymousId": "${anonymousId}",
-		"url": "${canonicalUrl}",
-		"title": "${title}",
 		"token": "${token}",
-		"props": {
-			"foo": "bar",
-			"baz": "qux"
+		"defaultProps": {
+			"$screen_height": "${viewportHeight}",
+			"$screen_width": "${viewportWidth}",
+			"$referrer": "${documentReferrer}",
+			"pageLoadTime": "${pageLoadTime}",
+			"pageDownloadTime": "${pageDownloadTime}",
+			"firstContentfulPaint": "${firstContentfulPaint}",
+
+		},
+		"superProps": {
+			"hello": "world"
 		}
 	},
 	"triggers": {
@@ -32,6 +39,12 @@
 			"request": "event",
 			"vars": {
 				"eventName": "page view"
+			},
+			"extraUrlParams": {
+				"$current_url": "${sourceUrl}",
+				"current_page_title": "${title}",
+				"current_domain": "${canonicalHost}",
+				"current_url_path": "${sourcePath}"
 			}
 		},
 		"trackAnchorClicks": {
@@ -40,6 +53,9 @@
 			"request": "event",
 			"vars": {
 				"eventName": "clicked link"
+			},
+			"extraUrlParams": {
+				"link_url": "${linkUrl}"
 			}
 		},
 		"trackButtonClicks": {
@@ -48,6 +64,9 @@
 			"request": "event",
 			"vars": {
 				"eventName": "clicked button"
+			},
+			"extraUrlParams": {
+				"button_name": "${buttonName}"
 			}
 		},
 		"scrollPings": {
@@ -60,13 +79,24 @@
 			"request": "event",
 			"vars": {
 				"eventName": "scrolled"
+			},
+			"extraUrlParams": {
+				"scroll_position": "${scrollTop}"
 			}
 		},
 		"createUserProfile": {
 			"on": "visible",
 			"request": "user",
-			"vars": {
-				"foo": "DUDE"
+			"extraUrlParams": {
+				"$name": "AK",
+				"$email": "ak@mixpanel.com"
+			}
+		},
+		"identifyUser": {
+			"on": "visible",
+			"request": "identify",
+			"extraUrlParams": {
+				"userId": "me!"
 			}
 		}
 	}

@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html ⚡>
+  <head>
+    <meta charset="utf-8" />
+    <title>Example AMP Page</title>
+    <script async src="https://cdn.ampproject.org/v0.js"></script>
+
+    <!-- REQ 1 -->
+    <script async custom-element="amp-analytics" src="https://cdn.ampproject.org/v0/amp-analytics-0.1.js"></script>
+    <style amp-custom>
+
+
+      h1 {
+        margin: 1rem;
+      }
+
+	  body * {
+		padding-left: 20px;
+		display: inline-block;
+	  }
+
+      body {
+        background-color: black;
+		color: white;
+		margin-left: 20px;
+
+      }
+
+    </style>
+  </head>
+
+  <body>
+    <!-- RANDOM -->
+    <h1>Hello AMP</h1>
+
+    <!-- LINK -->
+    <a href="#" data-vars-link-url="aktunes.com">yoo</a>
+
+    <!-- BUTTON -->
+    <button href="#" data-vars-button-name="foo">Don't click</button>
+
+    <!-- IMAGE -->
+    <img src="https://aktunes.com/images/smallAK.png" data-vars-image-name="Dude" alt="Example Image" />
+
+    <!-- FORM -->
+    <form method="post" action="#" data-vars-form-name="myForm">
+      <input type="text" name="firstName" data-vars-input-name="firstName" />
+      <input type="submit" value="Submit" />
+    </form>
+
+    <!-- VIDEO -->
+    <amp-video data-vars-video-name="exampleVideo" width="480" height="270" layout="responsive" src="#" poster="#">
+    </amp-video>
+
+    <!-- REQ 2 -->
+    <amp-analytics config="./config.json"> </amp-analytics>
+  </body>
+</html>

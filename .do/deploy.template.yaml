@@ -1,0 +1,9 @@
+spec:
+ name: mixpanel-amp-proxy
+ services:
+ - name: mixpanel-amp-proxy
+   git:
+     branch: master
+     repo_clone_url: https://github.com/ak--47/mixpanel-amp-proxy.git
+   dockerfile_path: ./Dockerfile
+   http_port: 8080
