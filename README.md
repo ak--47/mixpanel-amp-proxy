@@ -4,9 +4,7 @@ A basic Mixpanel proxy for use with [`<amp-analytics>` components on Google Amp 
 
 ## Demo
 
- <a href="https://youtu.be/9Cv4EmdUyd4"><img src="https://aktunes.neocities.org/ampProxy.png" alt="mixpanel amp proxy demo"/></a>
-
-
+<a href="https://youtu.be/9Cv4EmdUyd4"><img src="https://aktunes.neocities.org/ampProxy.png" alt="mixpanel amp proxy demo"/></a>
 
 ## Setup the Proxy
 
@@ -22,7 +20,7 @@ flowchart
 
 ```
 
-You can run the proxy on your own infrastructure or use a serverless provider; choose a deployment strategy below. 
+You can run the proxy on your own infrastructure or use a serverless provider; choose a deployment strategy below.
 
 Once you have a URL for the proxy, you can **[configure your front-end](#frontend)** to send requests to your proxy.
 
@@ -35,17 +33,12 @@ Once you have a URL for the proxy, you can **[configure your front-end](#fronten
 
 [Google Cloud Btn]: https://binbashbanana.github.io/deploy-buttons/buttons/remade/googlecloud.svg
 [Google Cloud Deploy]: https://deploy.cloud.run?git_repo=https://github.com/ak--47/mixpanel-amp-proxy
-
 [Digital Ocean Btn]: https://www.deploytodo.com/do-btn-blue.svg
 [Digital Ocean Deploy]: https://cloud.digitalocean.com/apps/new?repo=https://github.com/ak--47/mixpanel-amp-proxy
-
 [Railway Btn]: https://binbashbanana.github.io/deploy-buttons/buttons/remade/railway.svg
 [Railway Deploy]: https://railway.app/template/1ZbUOb?referralCode=t6z7XI
-
 [Render Btn]: https://binbashbanana.github.io/deploy-buttons/buttons/remade/render.svg
 [Render Deploy]: https://render.com/deploy?repo=https://github.com/ak--47/mixpanel-amp-proxy
-
-
 
 ### Manual Deploys
 
@@ -90,6 +83,7 @@ aws lambda create-function --function-name mixpanel-amp-proxy \
 --code ImageUri=your-account-id.dkr.ecr.your-region.amazonaws.com/mixpanel-amp-proxy:latest \
 --role arn:aws:iam::your-account-id:role/your-lambda-role
 ```
+
 ^ then configure your lambda to a public API Gateway endpoint, and copy the url of the deployed service; you will use this as the value of `requests` key in your `<amp-analytics>` component (replace with `{{YOUR-PROXY}}`)
 
 <div id="frontend"></div>
@@ -107,74 +101,75 @@ aws lambda create-function --function-name mixpanel-amp-proxy \
 ```html
 <amp-analytics>
   <script type="application/json">
- {
-	"requests": {
-		"event": "https://{{YOUR-PROXY}}/event",
-		"user": "http://{{YOUR-PROXY}}/user"
-	},
-	"vars": {
-		"userId": "", 
-		"anonymousId": "CLIENT_ID(mixpanel_amp_id)", 
-		"token": "YOUR_MIXPANEL_TOKEN",
-		"idMgmtVersion": 3
-	},
-	"transport": {
-		"beacon": false,
-		"xhrpost": true,
-		"image": false,
-		"useBody": true
-	},
-	"linkers": {
-		"mixpanel": {
-			"ids": {
-				"mixpanel_amp_id": "${anonymousId}"
-			},
-			"proxyOnly": false
-		}
-	},
-	"cookies": {
-		"mixpanel_amp_id": {
-			"value": "LINKER_PARAM(mixpanel, mixpanel_amp_id)"
-		}
-	},
-	"extraUrlParams": {
-		"eventName": "${eventName}",
-		"userId": "${userId}",
-		"anonymousId": "${anonymousId}",
-		"token": "${token}",
-		"time": "${timestamp}",
-		"user_agent": "${userAgent}",
-		"idMgmtVersion": "${idMgmtVersion}",
-		"defaultProps": {
-			"$screen_height": "${viewportHeight}",
-			"$screen_width": "${viewportWidth}",
-			"$referrer": "${documentReferrer}"
-		},
-		"superProps": {}
-	},
-	"triggers": {
-		"trackPageView": {
-			"on": "visible",
-			"request": "event",
-			"vars": {
-				"eventName": "page view"
-			},
-			"extraUrlParams": {				
-				"$current_url": "${sourceUrl}",
-				"current_page_title": "${title}",
-				"current_domain": "${canonicalHost}",
-				"current_url_path": "${sourcePath}"
-			}
-		}
-	}
-}
+    {
+      "requests": {
+        "event": "https://{{YOUR-PROXY}}/event",
+        "user": "http://{{YOUR-PROXY}}/user"
+      },
+      "vars": {
+        "userId": "",
+        "anonymousId": "CLIENT_ID(mixpanel_amp_id)",
+        "token": "YOUR_MIXPANEL_TOKEN",
+        "idMgmtVersion": 3
+      },
+      "transport": {
+        "beacon": false,
+        "xhrpost": true,
+        "image": false,
+        "useBody": true
+      },
+      "linkers": {
+        "mixpanel": {
+          "ids": {
+            "mixpanel_amp_id": "${anonymousId}"
+          },
+          "proxyOnly": false
+        }
+      },
+      "cookies": {
+        "mixpanel_amp_id": {
+          "value": "LINKER_PARAM(mixpanel, mixpanel_amp_id)"
+        }
+      },
+      "extraUrlParams": {
+        "eventName": "${eventName}",
+        "userId": "${userId}",
+        "anonymousId": "${anonymousId}",
+        "token": "${token}",
+        "time": "${timestamp}",
+        "user_agent": "${userAgent}",
+        "idMgmtVersion": "${idMgmtVersion}",
+        "defaultProps": {
+          "$screen_height": "${viewportHeight}",
+          "$screen_width": "${viewportWidth}",
+          "$referrer": "${documentReferrer}"
+        },
+        "superProps": {}
+      },
+      "triggers": {
+        "trackPageView": {
+          "on": "visible",
+          "request": "event",
+          "vars": {
+            "eventName": "page view"
+          },
+          "extraUrlParams": {
+            "$current_url": "${sourceUrl}",
+            "current_page_title": "${title}",
+            "current_domain": "${canonicalHost}",
+            "current_url_path": "${sourcePath}"
+          }
+        }
+      }
+    }
   </script>
 </amp-analytics>
 ```
+
 ^ this configuration is the equivalent of:
 
 ```js
-mixpanel.init(yourToken, {track_pageview: true});
+mixpanel.init(yourToken, { track_pageview: true });
 ```
 
 you can create other types of events by adding them to the `triggers` object; `triggers` have many different [listeners](https://amp.dev/documentation/components/amp-analytics#available-triggers). you can use standard [AMP variables](https://amp.dev/documentation/components/amp-analytics#amp-variables) or [custom variables](https://amp.dev/documentation/components/amp-analytics#custom-variables) to send data to the proxy.
@@ -221,17 +216,16 @@ any `data-vars-*` attributes will be available as variables; anything you put in
 
 you can also send user properties too; you want to make sure you set a `userId` top level OR in `extraUrlParams`:
 
-
 ```json
 {
   "createUserProfile": {
     "on": "visible",
     "request": "user",
     "extraUrlParams": {
-	// user properties to set
+      // user properties to set
       "$name": "AK",
       "$email": "ak@mixpanel.com",
-	  "userId": "1234"
+      "userId": "1234"
     }
   }
 }
@@ -239,5 +233,37 @@ you can also send user properties too; you want to make sure you set a `userId` 
 
 for a longer example see [`config.json` in the `/examples` folder](https://github.com/ak--47/mixpanel-amp-proxy/blob/main/examples/config.json)
 
+### Identity Management
 
+Mixpanel has two versions of identity management; [**original id merge**](https://docs.mixpanel.com/docs/tracking-methods/identifying-users#simplified-vs-original-id-merge) and [**simplified id merge**](https://docs.mixpanel.com/docs/tracking-methods/identifying-users#simplified-vs-original-id-merge)
 
+```json
+{
+  "vars": {
+    "idMgmtVersion": 3 //pass 2 for original; 3 for simplified
+  }
+}
+```
+
+If you are using the original id merge, you will need to send identify events via the `/identify` route; these events should always contain a `userId` in `extraUrlParams`:
+
+```json
+{
+  "requests": {
+    "event": "http://localhost:3000/event",
+    "user": "http://localhost:3000/user",
+    "identify": "http://localhost:3000/identify"
+  },
+  "triggers": {
+    "identifyUser": {
+      "on": "visible",
+      "request": "identify",
+      "extraUrlParams": {
+        "userId": "USER_ID_HERE!"
+      }
+    }
+  }
+}
+```
+
+^ none of this is required for simplified id merge; you can just send `userId` in `extraUrlParams` and the proxy will handle the rest.
