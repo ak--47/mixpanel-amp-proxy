@@ -115,7 +115,8 @@ aws lambda create-function --function-name mixpanel-amp-proxy \
 	"vars": {
 		"userId": "", 
 		"anonymousId": "CLIENT_ID(mixpanel_amp_id)", 
-		"token": "YOUR_MIXPANEL_TOKEN"
+		"token": "YOUR_MIXPANEL_TOKEN",
+		"idMgmtVersion": 3
 	},
 	"transport": {
 		"beacon": false,
@@ -143,6 +144,7 @@ aws lambda create-function --function-name mixpanel-amp-proxy \
 		"token": "${token}",
 		"time": "${timestamp}",
 		"user_agent": "${userAgent}",
+		"idMgmtVersion": "${idMgmtVersion}",
 		"defaultProps": {
 			"$screen_height": "${viewportHeight}",
 			"$screen_width": "${viewportWidth}",

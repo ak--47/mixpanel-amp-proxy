@@ -7,7 +7,8 @@
 	"vars": {
 		"userId": "ak",
 		"anonymousId": "CLIENT_ID(mixpanel_amp_id)",
-		"token": "3d62110de84248806dd3463a8c6ff47b"
+		"token": "3d62110de84248806dd3463a8c6ff47b",
+		"idMgmtVersion": 2
 	},
 	"transport": {
 		"beacon": false,
@@ -35,6 +36,7 @@
 		"token": "${token}",
 		"time": "${timestamp}",
 		"user_agent": "${userAgent}",
+		"idMgmtVersion": "${idMgmtVersion}",
 		"defaultProps": {
 			"$screen_height": "${viewportHeight}",
 			"$screen_width": "${viewportWidth}",

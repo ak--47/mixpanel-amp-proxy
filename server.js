@@ -15,8 +15,12 @@ const parser = require("ua-parser-js");
 const app = express();
 const debug = process.env.DEBUG || false;
 const Mixpanel = require("mixpanel");
+const helmet = require("helmet");
+const requestIp = require('request-ip');
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
+app.use(helmet())
+app.use(requestIp.mw())
 
 // middleware to dynamically set CORS headers for the calling domain
 app.use((req, res, next) => {
@@ -51,9 +55,10 @@ app.use((req, res, next) => {
 
 //the proxy will parse data from the <amp-analytics> UI component, and send it to mixpanel
 app.all("*", (req, res) => {
-	const { path, body, headers, ip } = req;
+	const { path, body, headers } = req;
+	const ip = req.clientIp;
 
-	const { eventName = "", userId = "", anonymousId = "", token = "", time = "", user_agent = "", superProps = {}, defaultProps = {}, ...props } = body;
+	const { eventName = "", userId = "", anonymousId = "", token = "", time = "", user_agent = "", superProps = {}, defaultProps = {}, idMgmtVersion = 0, ...props } = body;
 
 	if (!token) {
 		res.status(400).send("token is required");
@@ -90,6 +95,13 @@ app.all("*", (req, res) => {
 
 		if (userId) properties.$user_id = userId;
 		if (anonymousId) properties.$device_id = anonymousId;
+
+		// for "non simplified" ID management, we need to set distinct_id
+		if (Number(idMgmtVersion) !== 3) {
+			if (anonymousId) properties.distinct_id = anonymousId;
+			if (userId) properties.distinct_id = userId;
+		} 
+		
 		if (time && !isNaN(Number(time))) properties.time = Number(time);
 
 		mixpanel.track(eventName, properties, (err) => {
